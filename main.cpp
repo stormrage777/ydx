@@ -2,10 +2,7 @@
 #include <fstream>
 #include <string>
 #include <map>
-#include <Windows.h>
-#include <sstream>
-#include <vector>
-#include <iterator>
+
 
 #include <codecvt>
 
@@ -15,13 +12,13 @@ typedef multimap<int,string> tMmap;
 
 int main()
 {
-	ifstream ifs;
+    ifstream ifs;
     std::noskipws(ifs);
     ifs.open("football1.txt", ios::in | ios::binary);
 
-	string ss = "";
-	tMap m_pWordMap;
-	tMap::iterator itr;
+    string ss = "";
+    tMap m_pWordMap;
+    tMap::iterator itr;
 
     while (!ifs.eof())
     {
