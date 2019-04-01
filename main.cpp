@@ -33,13 +33,9 @@ int main()
 			for (pch; pch != NULL; pch = strtok(NULL, " "))
 			{
 				if ((itr = m_pWordMap.find(pch)) != m_pWordMap.end())
-				{
 					itr->second++;
-				}
 				else
-				{
 					m_pWordMap.insert(pair<string, int>(pch, 1));
-				}
 			}
 			ss = "";
 		}
