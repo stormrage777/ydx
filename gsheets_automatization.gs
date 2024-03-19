@@ -395,7 +395,7 @@ function checkDeadLinesDverdue()
         {
           MailApp.sendEmail
           ({
-            to: sendList[j].email,//'kr-nikolaev@yandex-team.ru',
+            to: sendList[j].email,
             subject: "Deadline OVERDUE  in Master backlog", 
             htmlBody: sendList[j].body
           });
