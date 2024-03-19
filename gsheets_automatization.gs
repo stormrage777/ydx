@@ -40,7 +40,7 @@ const OUTPUT_COLUMNS_TITLES =
 
 function checkDeadLinesDverdue()
 {
-
+  // TODO
 }
 
 function convertInitiatorFromSheetName(sheet)
@@ -55,12 +55,12 @@ function convertInitiatorFromSheetName(sheet)
 
   switch(sheet.getName())
   {
-    case SHEETS_TITLES.DEMAND: return 'Деманд';
-    case SHEETS_TITLES.SUPPLY: return 'Сапплай';
-    case SHEETS_TITLES.BALANCE: return 'Баланс';
+    case SHEETS_TITLES.DEMAND:    return 'Деманд';
+    case SHEETS_TITLES.SUPPLY:    return 'Сапплай';
+    case SHEETS_TITLES.BALANCE:   return 'Баланс';
     case SHEETS_TITLES.EXECUTION: return 'Сборка и выполнение';
-    case SHEETS_TITLES.PPL_OPS: return 'Внутренние операции';
-    default: return sheet.getName();
+    case SHEETS_TITLES.PPL_OPS:   return 'Внутренние операции';
+    default:                      return sheet.getName();
   }
 }
 
@@ -226,7 +226,6 @@ function getMailAdresses(sheet, mailTo)
   }
 
   console.log(emailsLst);
-  console.log(emailsLst.join(","))
   return emailsLst.join(",");
 }
 
@@ -242,9 +241,6 @@ function onEdit(e)
 
   if (cell.getColumn() == getColumnNumberByName(activeSheet, INITIAL_COLUMNS_TITLES.TASK_NAME))
   {
-    // console.log("cellValue: ", cellValue);
-    // console.log(("§ " + getCurDate() + '\n' + cellValue));
-
     if (cellValue && cellValue != "" && !(cellValue.includes('§')))
       cell.setValue("§ " + getCurDate() + '\n' + cellValue);
   }
@@ -270,12 +266,11 @@ function onEdit(e)
           copyCellData(activeSheet, analyticsSheet, currentRow, 'null', lastRow, OUTPUT_COLUMNS_TITLES.TASK_STATUS, 'Backlog');
 
 
-          console.log("Mailing: ", convertInitiatorFromSheetName(activeSheet), prjName, lastRow.toString());
+          console.log("Mailing: ", convertInitiatorFromSheetName(activeSheet), prjName, prjDesc, lastRow.toString());
 
           MailApp.sendEmail
           ({
-            //to: "kr-nikolaev@yandex-team.ru, stormrage777@gmail.com, stormrage777@yandex.ru", 
-            to: getMailAdresses(getSheetByName(allSheets, SHEETS_TITLES.PICKERS), 'analitycs') + ",kr-nikolaev@yandex-team.ru",
+            to: getMailAdresses(getSheetByName(allSheets, SHEETS_TITLES.PICKERS), 'analitycs'),
             subject: "New task in backlog", 
             htmlBody: 
             (
@@ -291,15 +286,7 @@ function onEdit(e)
 
     if (cellValue == 'Design / Product')
     {
-      // var productSheet = getSheetByName(allSheets, SHEETS_TITLES.PRODUCT);
-      // if (productSheet && productSheet.getName() != activeSheet.getName())
-      // {
-      //   var currentRow = cell.getRow();
-      //   copyCellData(activeSheet, analyticsSheet, currentRow, INITIAL_COLUMNS_TITLES.TASK_NAME, OUTPUT_COLUMNS_TITLES.TASK_NAME);
-      //   copyCellData(activeSheet, analyticsSheet, currentRow, INITIAL_COLUMNS_TITLES.TASK_DESCRIPTION, OUTPUT_COLUMNS_TITLES.TASK_DESCRIPTION);
-      //   copyCellData(activeSheet, analyticsSheet, currentRow, null, OUTPUT_COLUMNS_TITLES.TASK_STATUS, 'Backlog');
-      //   copyCellData(activeSheet, analyticsSheet, currentRow, null, OUTPUT_COLUMNS_TITLES.TASK_INITIATOR, convertInitiatorFromSheetName(activeSheet));
-      // }
+      // TODO
     }
   }
 }
