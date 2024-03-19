@@ -6,6 +6,16 @@
 //       .create();
 // }
 
+function getSheetUrl(ss, sheet)
+{
+  var url = '';
+  url += ss.getUrl();
+  url += '#gid=';
+  url += sheet.getSheetId(); 
+
+  return url;
+}
+
 
 const SHEETS_TITLES =
 {
@@ -381,7 +391,11 @@ function checkDeadLinesDverdue()
                   if (searchingIdx > -1)
                     sendList[searchingIdx].body += body;
                   else
-                    sendList.push({email: pplStr[manIndex].email, body: body});
+                    sendList.push
+                    ({
+                      email: pplStr[manIndex].email, 
+                      body: ('<a href="' + getSheetUrl(activeSpreadsheet, sheet) + '">Ссылка на Master backlog</a><br><br>' + body)
+                    });
                 }
               }
             }
