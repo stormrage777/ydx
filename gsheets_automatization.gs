@@ -16,7 +16,7 @@ const SHEETS_TITLES =
   ANALYTICKS: 'Analytics backlog',
   PRODUCT:    'Product backlog',
   PPL_OPS:    'Common ppl ops',
-  PICKERS:    'Pickers -->',
+  // PICKERS:    'Pickers -->',
 };
 
 const INITIAL_COLUMNS_TITLES = 
@@ -37,11 +37,6 @@ const OUTPUT_COLUMNS_TITLES =
   TASK_DESCRIPTION: 'Описание',         // 3
   TASK_STATUS:      'Статус',           // 4
 };
-
-function checkDeadLinesDverdue()
-{
-  // TODO
-}
 
 function convertInitiatorFromSheetName(sheet)
 {
@@ -265,12 +260,11 @@ function onEdit(e)
           copyCellData(activeSheet, analyticsSheet, currentRow, INITIAL_COLUMNS_TITLES.TASK_DESCRIPTION, lastRow, OUTPUT_COLUMNS_TITLES.TASK_DESCRIPTION);
           copyCellData(activeSheet, analyticsSheet, currentRow, 'null', lastRow, OUTPUT_COLUMNS_TITLES.TASK_STATUS, 'Backlog');
 
-
           console.log("Mailing: ", convertInitiatorFromSheetName(activeSheet), prjName, prjDesc, lastRow.toString());
 
           MailApp.sendEmail
           ({
-            to: getMailAdresses(getSheetByName(allSheets, SHEETS_TITLES.PICKERS), 'analitycs'),
+            to: getMailAdresses(getSheetByName(allSheets, 'Pickers -->'/*SHEETS_TITLES.PICKERS*/), 'analitycs'),
             subject: "New task in backlog", 
             htmlBody: 
             (
@@ -290,3 +284,130 @@ function onEdit(e)
     }
   }
 }
+
+function checkDeadLinesDverdue()
+{
+  var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var allSheets = activeSpreadsheet.getSheets();
+
+  var pickersSheet = getSheetByName(allSheets, 'Pickers -->');
+
+  if (!pickersSheet)
+  {
+    console.log("ERROR: checkDeadLinesDverdue: !pickersSheet", pickersSheet);
+    return null;
+  }
+
+  var pplNamesCol = getColumnNumberByName(pickersSheet, 'Имя', 3);
+  var pplEmailsCol = getColumnNumberByName(pickersSheet, 'Почта', 3);
+
+  if (!pplNamesCol || !pplEmailsCol)
+  {
+    console.log("ERROR: checkDeadLinesDverdue: !pplNamesCol || !pplEmailsCol", pplNamesCol, pplEmailsCol);
+    return null;
+  }
+	
+  var pplStr = []; // {name, email}
+  
+  for (var i = 4; i < pickersSheet.getMaxRows(); ++i)
+  {
+    var name = pickersSheet.getRange(i, pplNamesCol).getValue();
+    var email = pickersSheet.getRange(i, pplEmailsCol).getValue();
+
+    if (!(name.length === 0) && !(email.length === 0))
+      pplStr.push({name: name, email: email});
+  }
+
+  if (pplStr.length == 0)
+  {
+    console.log("ERROR: checkDeadLinesDverdue: pplStr.length == 0");
+    return null;
+  }
+
+  console.log(pplStr);
+
+  var neededSheets = Object.values(SHEETS_TITLES);
+
+  for (var sheetIdx = 0; sheetIdx < neededSheets.length; ++sheetIdx)
+  {
+    var sheet = getSheetByName(allSheets, neededSheets[sheetIdx]);
+
+    if (sheet)
+    {
+      var counter = 0;
+      console.log(sheet.getName());
+
+      var taskCol   = getColumnNumberByName(sheet, INITIAL_COLUMNS_TITLES.TASK_NAME);
+      var ownerCol  = getColumnNumberByName(sheet, INITIAL_COLUMNS_TITLES.TASK_OWNER);
+      var statusCol = getColumnNumberByName(sheet, INITIAL_COLUMNS_TITLES.TASK_STATUS);
+      var etaCol    = getColumnNumberByName(sheet, INITIAL_COLUMNS_TITLES.TASK_DEADLINE);
+      
+      if (etaCol && ownerCol && statusCol && taskCol)
+      {
+        var lastRow = getLastFreeRow(sheet);
+        var currentDate = new Date();
+        var sendList = [];
+
+        for (var i = 3; i < lastRow; ++i)
+        {
+          var eta = new Date(sheet.getRange(i, etaCol).getValue());
+          var status = sheet.getRange(i, statusCol).getValue();
+        
+          if (eta && Object.prototype.toString.call(eta) === '[object Date]')
+          {
+            var diffDays = Math.ceil((currentDate - eta) / (1000 * 60 * 60 * 24)); 
+
+            if (diffDays > 1 && !(['Done - success', 'On hold', 'Not doing', 'Done - failure'].includes(status)))
+            {
+              counter++;
+              var owner = sheet.getRange(i, ownerCol).getValue();
+
+              if (!(owner.length === 0))
+              {
+                var manIndex = pplStr.findIndex((x) => {return x.name == owner});
+                if (manIndex != -1)
+                {
+                  var searchingIdx = sendList.findIndex((x) => {return x.email == pplStr[manIndex].email});
+                  var body =
+                  (
+                    sheet.getRange(i, taskCol).getValue().toString() + "<br>"
+                    + '<p style="color:rgba(255,0,0,0.5);"">'
+                    + "Номер строки в беклоге: " + i.toString() + "<br>"
+                    + "Статус задачи: " + status.toString() + "<br>"
+                    + "Просрочка: " + diffDays.toString() + " дней"
+                    + "</p><br>"
+                  );
+
+                  if (searchingIdx > -1)
+                    sendList[searchingIdx].body += body;
+                  else
+                    sendList.push({email: pplStr[manIndex].email, body: body});
+                }
+              }
+            }
+          }
+        }
+
+        console.log(sendList);
+        console.log(sheet.getName(), counter);
+
+        for (var j = 0; j < sendList.length; ++j)
+        {
+          MailApp.sendEmail
+          ({
+            to: sendList[j].email,//'kr-nikolaev@yandex-team.ru',
+            subject: "Deadline OVERDUE  in Master backlog", 
+            htmlBody: sendList[j].body
+          });
+        }
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
